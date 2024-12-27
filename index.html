@@ -9,7 +9,25 @@
 </head>
 <body>
     <canvas id="gameArea"></canvas>
-    <div id="player" class="triangle"></div>
- <!-- Player div  -->
+
+    <!-- Player div -->
+    <div id="player" class="triangle">
+    
+        <div class="l1">L1</div>
+        <div class="r1">R1</div>
+        <div class="l2">L2</div>
+        <div class="r2">R2</div>
+    </div>
+
+    <script>
+        // Debugging: Log gamepad events
+        window.addEventListener("gamepadconnected", (event) => {
+            console.log("Gamepad connected: ", event.gamepad);
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            console.log("Gamepad disconnected: ", event.gamepad);
+        });
+    </script>
 </body>
 </html>

@@ -18,47 +18,75 @@ let yellowPressed = false;
 let redPressed = false;
 let greenPressed = false;
 
+// New button states for L1, R1, L2, R2
+let gray1Pressed = false;
+let gray2Pressed = false;
+let gray3Pressed = false;
+let gray4Pressed = false;
+
 // Get the canvas background color
 const canvasBackgroundColor = getComputedStyle(canvas).backgroundColor;
 
+// Setup the canvas size and initial player position
 function setupCanvas() {
-    canvas.width = window.innerWidth;  // Sets the canvas width to the width of the browser window
-    canvas.height = window.innerHeight; // Sets the canvas height to the height of the browser window
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    playerSize = canvas.width * 0.1;  // Sets the player's size to 10% of the canvas width
-    velocity = canvas.width * 0.01;   // Sets the player's velocity (speed of movement) to 1% of the canvas width
+    playerSize = canvas.width * 0.1;  // Player size set to 10% of canvas width
+    velocity = canvas.width * 0.01;   // Player velocity (speed) set to 1% of canvas width
 
-    playerX = (canvas.width - playerSize) / 2;  // Centers the player horizontally on the canvas
-    playerY = (canvas.height - playerSize) / 2; // Centers the player vertically on the canvas
+    playerX = (canvas.width - playerSize) / 2;  // Center player horizontally
+    playerY = (canvas.height - playerSize) / 2; // Center player vertically
 
-    // Update the player's initial size and position
-    playerElement.style.width = `${playerSize}px`;  // Sets the player's width to `playerSize`
-    playerElement.style.height = `${playerSize}px`; // Sets the player's height to `playerSize`
-    playerElement.style.transition = "all 0.1s ease"; // Ensure smooth transition for all changes
-    updatePlayerPosition();  // Updates the player's position on the screen
+    playerElement.style.width = `${playerSize}px`;  // Set player's width
+    playerElement.style.height = `${playerSize}px`; // Set player's height
+    playerElement.style.transition = "all 0.1s ease"; // Smooth transition for player movements
+    updatePlayerPosition();  // Update player position
+
+    // Setup controls
+    setupKeyboardControls();
+    setupTouchControls();  // Keep touch controls as fallback for mobile
 }
 setupCanvas();
 
 window.addEventListener("resize", setupCanvas);
+
+// Handle gamepad connection and disconnection
 window.addEventListener("gamepadconnected", (event) => {
     controllerIndex = event.gamepad.index;
-    console.log("connected");
+    console.log("Gamepad connected:", event.gamepad);
 });
 
 window.addEventListener("gamepaddisconnected", (event) => {
-    console.log("disconnected");
-    controllerIndex = null;
+    console.log("Gamepad disconnected:", event.gamepad);
+    controllerIndex = null; // Set to null when gamepad is disconnected
 });
 
+// Function to find a connected gamepad
+function findConnectedGamepad() {
+    const gamepads = navigator.getGamepads();
+    for (const gamepad of gamepads) {
+        if (gamepad?.connected) {
+            return gamepad;
+        }
+    }
+    return null;  // No connected gamepad found
+}
+
+
+// Update player position on screen
 function updatePlayerPosition() {
     playerElement.style.left = `${playerX}px`;
     playerElement.style.top = `${playerY}px`;
 }
 
+// Handle gamepad input
 function controllerInput() {
-    if (controllerIndex !== null) {
-        const gamepad = navigator.getGamepads()[controllerIndex];
+    const gamepad = findConnectedGamepad(); // Always check for a connected gamepad
+
+    if (gamepad) {
         const buttons = gamepad.buttons;
+
         upPressed = buttons[12].pressed;
         downPressed = buttons[13].pressed;
         leftPressed = buttons[14].pressed;
@@ -85,13 +113,20 @@ function controllerInput() {
         redPressed = buttons[1].pressed;
         bluePressed = buttons[2].pressed;
         yellowPressed = buttons[3].pressed;
+
+        // Handle additional gamepad buttons (L1, R1, L2, R2)
+        gray1Pressed= buttons[4].pressed; // L1 button
+        gray2Pressed = buttons[5].pressed; // R1 button
+        gray3Pressed = buttons[6].pressed; // L2 button
+        gray4Pressed = buttons[7].pressed; // R2 button
     }
 }
 
+// Handle movement based on input
 function movePlayer() {
     let isMoving = false;
 
-    // Remove the triangle class if it's not moving
+    // Remove the triangle class if not moving
     playerElement.classList.remove("triangle");
 
     if (upPressed) {
@@ -117,10 +152,10 @@ function movePlayer() {
 
     // Diagonal movement (optional)
     if (upPressed && leftPressed) {
-        playerElement.style.transform = "rotate(-40deg)"; 
+        playerElement.style.transform = "rotate(-40deg)";
     }
     if (upPressed && rightPressed) {
-        playerElement.style.transform = "rotate(60deg)"; 
+        playerElement.style.transform = "rotate(60deg)";
     }
     if (downPressed && leftPressed) {
         playerElement.style.transform = "rotate(-135deg)";
@@ -142,16 +177,19 @@ function movePlayer() {
     } else {
         // Revert to square if not moving
         playerElement.classList.remove("triangle");
-        playerElement.style.width = `${playerSize}px`; // Reset the square size
-        playerElement.style.height = `${playerSize}px`; // Reset the square size
-        playerElement.style.backgroundColor = "rgb(0, 0, 3)"; // Reset the color to original square color
+        playerElement.style.width = `${playerSize}px`; // Reset square size
+        playerElement.style.height = `${playerSize}px`; // Reset square size
+        playerElement.style.backgroundColor = "rgb(0, 0, 3)"; // Reset color to original square color
     }
 
     updatePlayerPosition();
 }
 
+
+
+// Handle player shape change based on button presses
 function changePlayerShape() {
-    playerElement.classList.remove("morph-A", "morph-B", "morph-C", "morph-D");
+    playerElement.classList.remove("morph-A", "morph-B", "morph-C", "morph-D","morph-E", "morph-F", "morph-G", "morph-H");
 
     if (bluePressed) {
         playerElement.classList.add("morph-A");
@@ -169,24 +207,120 @@ function changePlayerShape() {
         playerElement.classList.add("morph-D");
         playerElement.textContent = "Y";
         playerElement.style.color = "yellow";
+    } else if (gray1Pressed) {
+        playerElement.classList.add("morph-E");
+        playerElement.textContent = "L1";
+        playerElement.style.color = "gray1";
+    } else if (gray2Pressed) {
+        playerElement.classList.add("morph-F");
+        playerElement.textContent = "R2";
+        playerElement.style.color = "gray2";
+    } else if (gray3Pressed) {
+        playerElement.classList.add("morph-G");
+        playerElement.textContent = "L2";
+        playerElement.style.color = "gray3";
+    } else if (gray4Pressed) {
+        playerElement.classList.add("morph-H");
+        playerElement.textContent = "R2";
+        playerElement.style.color = "gray4";
     } else {
         playerElement.textContent = "";
         playerElement.style.color = "";
     }
+
 }
 
+// Handle player color change based on button presses
 function changePlayerColor() {
-    playerElement.classList.remove("pink", "blue", "red", "green", "yellow");
+    playerElement.classList.remove("blue", "red", "green", "yellow","gray1","gray2","gray3","gray4");
 
     if (bluePressed) playerElement.classList.add("blue");
     else if (redPressed) playerElement.classList.add("red");
     else if (greenPressed) playerElement.classList.add("green");
     else if (yellowPressed) playerElement.classList.add("yellow");
-    else playerElement.classList.add("pink");
+    else if (gray1Pressed) playerElement.classList.add("gray1");
+    else if (gray2Pressed) playerElement.classList.add("gray2");
+    else if (gray3Pressed) playerElement.classList.add("gray3");
+    else if (gray4Pressed) playerElement.classList.add("gray4");
+    else playerElement.classList.add("gray1");
 }
 
+// Setup keyboard controls for movement
+function setupKeyboardControls() {
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowUp" || event.key === "w") {
+            upPressed = true;
+        } else if (event.key === "ArrowDown" || event.key === "s") {
+            downPressed = true;
+        } else if (event.key === "ArrowLeft" || event.key === "a") {
+            leftPressed = true;
+        } else if (event.key === "ArrowRight" || event.key === "d") {
+            rightPressed = true;
+        }
+
+        // Mapping keys for button presses
+        if (event.key === "1") {  // Blue button (A)
+            bluePressed = true;
+        } else if (event.key === "2") {  // Red button (B)
+            redPressed = true;
+        } else if (event.key === "3") {  // Green button (X)
+            greenPressed = true;
+        } else if (event.key === "4") {  // Yellow button (Y)
+            yellowPressed = true;
+        }
+    });
+
+    document.addEventListener("keyup", (event) => {
+        if (event.key === "ArrowUp" || event.key === "w") {
+            upPressed = false;
+        } else if (event.key === "ArrowDown" || event.key === "s") {
+            downPressed = false;
+        } else if (event.key === "ArrowLeft" || event.key === "a") {
+            leftPressed = false;
+        } else if (event.key === "ArrowRight" || event.key === "d") {
+            rightPressed = false;
+        }
+
+        // Remove button presses when keys are released
+        if (event.key === "1") {
+            bluePressed = false;
+        } else if (event.key === "2") {
+            redPressed = false;
+        } else if (event.key === "3") {
+            greenPressed = false;
+        } else if (event.key === "4") {
+            yellowPressed = false;
+        }
+    });
+}
+
+// Handle touchscreen control
+function setupTouchControls() {
+    canvas.addEventListener("touchstart", (event) => {
+        let touch = event.touches[0];
+        let mouseX = touch.clientX;
+        let mouseY = touch.clientY;
+
+        if (mouseX < playerX) leftPressed = true;
+        if (mouseX > playerX) rightPressed = true;
+        if (mouseY < playerY) upPressed = true;
+        if (mouseY > playerY) downPressed = true;
+    },{ passive: true });
+
+    canvas.addEventListener("touchend", () => {
+        upPressed = false;
+        downPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+    },{ passive: true });
+
+    canvas.addEventListener("touchmove", (event) => {
+    },{ passive: true });
+}
+
+// Main game loop
 function gameLoop() {
-    controllerInput();
+    controllerInput();     // Read gamepad input
     movePlayer();
     changePlayerColor();
     changePlayerShape();
